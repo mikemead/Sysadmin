@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<Sites>
+	<Site>
+		<Sitename>SiteA</Sitename>
+		<RODC>SITEA-RODC</RODC>
+		<Enabled>False</Enabled>
+		<UserGroup>SiteA Users</UserGroup>
+		<UserOU>OU=SiteA,OU=People,DC=domain</UserOU>
+		<ComputerGroup>SiteA Computers</ComputerGroup>
+		<ComputerOU>OU=SiteA,OU=Workstations,DC=domain</ComputerOU>
+	</Site>
+</Sites>

@@ -3,24 +3,42 @@
 Removes all members (or specified) member from specified queue and logs to agent_logout.log
 
 Usage:
-	python agent_logout.py -q QUEUE [-m MEMBER] [-a]
+	python agent_logout.py -q QUEUE [-m MEMBER] [-a] [-l] [-e]
 e.g.
         python agent_logout.py -q 4000 -m 1234 (Remove member 1234 from queue 4000)
         python agent_logout.py -q 4000 -a (Remove all members from queue 4000)
+	python agent_logout.py -q 4000 -a -l logout.log -e test@example.com (Log to logout.log and send an email to test@example.com)
 """
 
 import subprocess
 import datetime
 import sys
 import getopt
+import smtplib
 
-def log_queue_member_removal(queue, member, name):
+def log_queue_member_removal(queue, member, name, log):
 	"""
 	Outputs to agent_logout.log the time and date and details of each member logged out of the specified queue.
 	"""
-	f = open("agent_logout.log", "a")
-	f.write(str(datetime.datetime.today()) + ": " + name + "(" + member + ") logged out of queue " + str(queue) + "\n")
-	f.close()
+	try:
+		f = open(log, "a")
+		f.write(str(datetime.datetime.today()) + ": " + name + "(" + member + ") logged out of queue " + str(queue) + "\n")
+		f.close()
+	except:
+		print "Error writing to file", log
+
+def email_queue_member_removal(queue, member, name, email):
+	"""
+	Emails 'email' address the time and date and details of each member logged out of the specified queue.
+	"""
+	try:
+		sender = 'mr-pbx@hq.scope.org.uk'
+		s = smtplib.SMTP('localhost')
+		msg = "From:" + sender + "\nTo:" + email + "\nSubject: Queue Member Logged Out \n\n" + name + "(" + member + ") logged out of queue " + str(queue) + "\n"
+		s.sendmail('mr-pbx@hq.scope.org.uk', email, msg)
+		s.quit() 
+	except:
+		print "Error sending email to", email
 
 def remove_queue_member(queue, member):
 	"""
@@ -39,10 +57,11 @@ def usage():
 
 def main(argv):
 	queue, member, all = 0, 0, 0
+	log, email = '', ''
 
 	# Get specified options
 	try:
-		opts, args = getopt.getopt(argv, "q:m:ah")
+		opts, args = getopt.getopt(argv, "l:e:q:m:ah")
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
@@ -58,6 +77,10 @@ def main(argv):
 			member = arg
 		elif opt in ("-a"):
 			all = 1
+		elif opt in ("-l"):
+			log = arg
+		elif opt in ("-e"):
+			email = arg
 
 	# If a queue was specified and all members are to be removed
 	if queue and all:
@@ -66,7 +89,10 @@ def main(argv):
 			if "ext-local" in line:
 				member = line.split(' from hint:')[0].split('(')
 				remove_queue_member(queue, member[1])
-				log_queue_member_removal(queue, member[1], member[0].strip())
+				if log:
+					log_queue_member_removal(queue, member[1], member[0].strip(), log)
+				if email:
+					email_queue_member_removal(queue, member[1], member[0].strip(), email)
 	# If a queue was specified and a single member is to be removed
 	elif queue and member:
 		member_string = "Local/" + member + "@from-queue/n"

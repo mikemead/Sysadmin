@@ -32,10 +32,10 @@ def email_queue_member_removal(queue, member, name, email):
 	Emails 'email' address the time and date and details of each member logged out of the specified queue.
 	"""
 	try:
-		sender = 'mr-pbx@hq.scope.org.uk'
+		sender = 'sender@example.com'
 		s = smtplib.SMTP('localhost')
 		msg = "From:" + sender + "\nTo:" + email + "\nSubject: Queue Member Logged Out \n\n" + name + "(" + member + ") logged out of queue " + str(queue) + "\n"
-		s.sendmail('mr-pbx@hq.scope.org.uk', email, msg)
+		s.sendmail('sender@example.com', email, msg)
 		s.quit() 
 	except:
 		print "Error sending email to", email
